@@ -120,3 +120,7 @@ def classify(t: Ticket):
         "assign_to": assign_to,
         "latency_ms": int((time.time() - start) * 1000),
     })
+@app.get("/notify-test")
+def notify_test(text: str = "hello from api"):
+    notify_slack("TEST", text, 1.0, "test@company.com", "Test")
+    return {"status": "sent", "text": text}
