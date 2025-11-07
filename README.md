@@ -1,199 +1,83 @@
-# Support ticket classification
+Support Ticket Classification using AI (NLP + FastAPI + DevOps)
 
-## Article
+This project automatically classifies customer support tickets using Machine Learning.
+It predicts the ticket category, priority and assigns it to the right support team.
 
-This project has also been discussed, in a more schematic way, [in an article on our website](https://neuronest.net/attribution-des-tickets-aux-equipes-it/).
+🔥 Problem We Solve
 
-## Documentation
+Support teams get thousands of tickets daily.
+Manually reading and classifying each ticket takes time.
 
-**Support Ticket Classification** is a Data Science project which goal is 
-to correctly classify IT support tickets. 
+Our system does this automatically.
 
-It is a real world problem and the type of solution that is presented here aims
- at saving time in handling production issues by the IT teams.
- 
-The data is Microsoft support ticket dataset.
+🤖 AI / ML Implementation
 
-The data comes in two versions in this project:
-- The first one, ```all_tickets.csv```, has about 50.000 samples and 13 **unbalanced** distinct tickets categories.
-- The second one, ```subset_tickets.csv```, has about 3.000 samples and 5 **balanced** distinct tickets categories.
+Preprocessed ticket text using NLP (stopwords removal, tokenization)
 
-This repository allows you to:
-- Get the data
-- Train the model to classify tickets, either locally or in Azure cloud
-- Deploy the model on an Azure Webapp and expose it through a REST API
+Converted text to features using TF-IDF
 
-## Requirements
- 
- - [Miniconda](https://docs.conda.io/en/latest/miniconda.html) to create 
- and activate the right python environment
- 
+Trained machine learning model for classification
 
-## Installation
- 
- ```console
- $ source install.sh
- ```
- 
-## Get the data
+Model returns:
 
- ```console
- $ python download_data.py
- 
- ---> all_tickets.csv and subset_tickets.csv at project root level
- ```
- 
-## Train locally on your machine
+Category (Network / Payment / Login / etc.)
 
-There are default values in ```src/train_conf.yml``` that drive the training.
+Confidence Score
 
-You may update them, most important field to fill is ```dataset_path```:
-```
-training:
-  ...
+Priority (Low / Medium / High)
 
-data:
-  dataset_path: all_tickets.csv
-  ...
-```
-Default path is ```all_tickets.csv```
+Recommended Assignment team email
 
-Now run training:
- ```console
- $ python src/train.py
- 
- ---> my_model folder and tokenizer.pkl at project root level
- ```
- - ```my_model``` contains the model description and weights
- - ```tokenizer.pkl``` is the text model tokenizer that goes hand in hand with the model  
+🛠 Tech Stack
+Section	Tools Used
+Programming	Python
+ML Libraries	scikit-learn, pandas, numpy
+Backend API	FastAPI
+Testing	Swagger UI / Postman
+DevOps	FastAPI deployment, Health checks, Dockerfile
+⚙️ DevOps Implementation
 
+We deployed the ML model as a FastAPI service so that any application can call the API.
 
+DevOps work we did:
 
-## Or train in Azure cloud
+Created API endpoint /classify to serve model predictions
 
-First there are a few steps that you must undertake to train in Azure:
-1) Create an Azure ```resource group``` associated to the project
-2) Create a ```Machine Learning Workspace``` associated to the ```resource group``` that contains what we need to train
- 
+Created health endpoint /health to check service status
 
-Go to [Azure portal](https://portal.azure.com/)
+Created Dockerfile (containerization ready)
 
-Create a resource of type ```resource group``` and fill in these 
-types of settings
- 
-![image](readme_images/resource_group.png)
+Can run on cloud server / Render / AWS EC2
 
-Your ```Subscription``` name and ```Region``` may be different of course
+Can be integrated into Slack / Helpdesk systems
 
-Next create a resource of type ```Machine Learning```, this is your ```Machine Learning Workspace```
+So DevOps ensures the model is not only trained but also runs continuously as a reliable service.
 
-![image](readme_images/machine_learning_workspace.png)
+🚀 How to Run Locally
+Install dependencies
+pip install -r requirements.txt
 
-Same as before, your ```Subscription``` name and ```Region``` may be different.
+Start server
+uvicorn app:app --reload --port 8000
 
-Go into your ```Machine Learning Workspace``` and create there the compute 
-resource we will use to train.
+Open API Docs
 
-![image](readme_images/compute.png)
+http://localhost:8000/docs
 
-Next step is to send the data to an Azure data folder. 
-
-To do it we need to set a few Azure settings at ```src/azure_conf.yml```
-
-```
-LOCAL_DATASET_PATH: "all_tickets.csv"
-SUBSCRIPTION_ID: "<subscription_id>"
-...
-
-STORAGE:
-  AccountName: "<account_name>"
-  AccountKey: "<account_key>"
-  ...
-...
-```
-- ```LOCAL_DATASET_PATH```: the path to the csv dataset you want to send to Azure
-- ```SUBSCRIPTION_ID``` and ```STORAGE``` info is found at:
-![image](readme_images/subscription_storage_info.png)
-more precisely, ```<account_name>``` and ```<account_key>``` can be found at:
-![image](readme_images/account_name_key.png)
-
-
-Send the data to Azure
- ```console
- $ python src/azure_store_data.py
- 
- ---> all_tickets.csv or subset_tickets.csv sent to your Azure data folder
- ```
- 
-Now run the training in Azure:
- ```console
- $ python src/azure_run_train.py
- ```
- 
-Download your **trained model** and **tokenizer** from Azure:
-- Go into your ```Machine Learning Workspace``` and launch 
-```Azure Machine Learning Studio```
-- Download the files you need at:
-![image](readme_images/download_trained_model.png)
-
- Move ```my_model.tar.gz``` and ```tokenizer.pkl``` to project root, 
- extract ```my_model.tar.gz```
- 
- You should have ```my_model``` folder and ```tokenizer.pkl``` 
- at project root.
- 
-## Build the project Docker image and push to Docker Hub
-
-Go to [Docker Hub](https://hub.docker.com/repositories)
-
-- Create a private repository ```ticket_support_classification```
-
-In the following we assume that your Docker Hub user name is ```yohskua```
-
-**You must replace it by your own Docker Hub user name**
-
-- Build the project Docker image
- ```console
- $ docker build -t yohskua/ticket_support_classification
- ```
- 
- - Push the image to your Docker Hub private repository
- ```console
- $ docker push yohskua/ticket_support_classification:latest
- ```
-
-## Deploy project on Azure WebApp
-
-Create a resource of type ```Web App``` and fill in these 
-types of settings:
-![image](readme_images/webapp_settings.png)
-
-Next fill in your Docker Hub private repository settings:
-![image](readme_images/docker_hub_settings.png)
-
-
-Go in your Web App ```app-ticket-classification``` resource
-
-Finally add an environment variable that Azure will use:
-![image](readme_images/webapp_environment_variable.png)
-  
- 
-Azure uses this variable so that Docker publishes this container port to the host machine. 
-
-This container port is the one used by the FastAPI server inside the container.
-
-Try and run this example to see if the Web App is correctly deployed
- 
- ```python
-from post_request import post_classify_ticket
-message = "monitor add install new monitor,monitor hello dear had monitor discussed he told leave tower give thank"
-post_classify_ticket(message, url="https://app-ticket-classification.azurewebsites.net")
- 
-  ---> {
-    "ticket_message": "monitor add install new monitor,monitor hello dear had monitor discussed he told leave tower give thank",
-    "ticket_category": 5
+🧪 Example API Request
+{
+  "text": "Production website is not loading for users"
 }
- ```
- 
+
+Output Response
+{
+  "label": "Network",
+  "confidence": 0.79,
+  "priority": "High",
+  "assign_to": "netops@company.com"
+}
 
 
+🏁 Conclusion
+
+This project reduces manual work for support teams, speeds up ticket classification, and smartly routes issues to the right team instantly.
