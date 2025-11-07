@@ -22,16 +22,7 @@ Our AI model does this instantly and automatically.
   - Category label
   - Confidence score
   - Priority level
-
-Example Prediction:
-```json
-{
-  "label": "Network",
-  "confidence": 0.79,
-  "priority": "High",
-  "assign_to": "netops@company.com"
-}
-
+    
 
 
 ## 🛠 Tech Stack Used
@@ -69,4 +60,17 @@ pip install -r requirements.txt
 uvicorn app:app --reload --port 8000
 
 http://localhost:8000/docs
+
+
+
+Example Prediction:
+```json
+{
+  "label": "Network",
+  "confidence": 0.79,
+  "priority": "High",
+  "assign_to": "netops@company.com"
+}
+
+
 
